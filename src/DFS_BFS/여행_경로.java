@@ -1,19 +1,21 @@
 // https://programmers.co.kr/learn/courses/30/lessons/43164
 package DFS_BFS;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 public class 여행_경로 {
 
   // 공항은 최대 10,000개
   // 티켓은 최대 ?개
   // 효율성 검사가 없는 문제라 생각없이 풀면 되는 듯?
+  // 같은 경로의 티켓이 존재할수도 있을까?
 
   static class Route {
 
@@ -37,11 +39,11 @@ public class 여행_경로 {
     }
   }
 
-  static Map<String, SortedSet<String>> m;
+  static Map<String, List<String>> m;
   static Map<String, Integer> used, currentUsed;
   static Queue<Route> q;
   static int t;
-  static Route answerRoute;
+  static Route answerRoute = null;
 
   public static String[] solution(String[][] tickets) {
     t = tickets.length;
@@ -50,11 +52,18 @@ public class 여행_경로 {
     q = new LinkedList<>();
     for (String[] ticket : tickets) {
       if (!m.containsKey(ticket[0])) {
-        m.put(ticket[0], new TreeSet<>());
+        m.put(ticket[0], new ArrayList<>());
       }
       m.get(ticket[0]).add(ticket[1]);
       used.put((ticket[0] + ticket[1]), 0);
     }
+
+    for (String key : m.keySet()) {
+      List<String> value = m.get(key);
+      Collections.sort(value);
+      m.put(key, value);
+    }
+
     q.add(new Route("ICN", 1, used));
 
     while (!q.isEmpty()) {
@@ -88,12 +97,18 @@ public class 여행_경로 {
   }
 
   public static void main(String[] args) {
-    System.out.println(Arrays.toString(solution(new String[][]{{"ICN", "AAA"}, {"AAA", "BBB"},
-        {"BBB", "CCC"}, {"CCC", "ICN"},
-        {"ICN", "DDD"}}))); // Expect ["ICN", "AAA", "BBB", "CCC", "ICN", "DDD"]
-    System.out.println(Arrays.toString(solution(new String[][]{{"ICN", "DDD"}, {"DDD", "BBB"},
-        {"BBB", "CCC"}, {"CCC", "ICN"},
-        {"ICN", "AAA"}}))); // Expect ["ICN", "DDD", "BBB", "CCC", "ICN", "AAA"]
+    System.out.println(Arrays.toString(solution(
+        new String[][]{{"ICN", "AAA"}, {"AAA", "BBB"}, {"BBB", "CCC"}, {"CCC", "ICN"},
+            {"ICN", "DDD"},
+            {"DDD", "ICN"}, {"ICN", "DDD"},
+            {"DDD",
+                "ICN"}}))); // Expect ["ICN", "AAA", "BBB", "CCC", "ICN", "DDD", "ICN", "DDD", "ICN"]
+    System.out.println(Arrays.toString(solution(
+        new String[][]{{"ICN", "DDD"}, {"DDD", "BBB"}, {"BBB", "CCC"}, {"CCC", "ICN"},
+            {"ICN", "AAA"},
+            {"AAA", "ICN"}, {"ICN", "AAA"},
+            {"AAA",
+                "ICN"}}))); // Expect ["ICN", "AAA", "ICN", "AAA", "ICN", "DDD", "BBB", "CCC", "ICN"]
     System.out.println(Arrays.toString(solution(
         new String[][]{{"ICN", "JFK"}, {"HND", "IAD"},
             {"JFK", "HND"}}))); // Expect ["ICN", "JFK", "HND", "IAD"]
