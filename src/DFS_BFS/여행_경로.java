@@ -4,6 +4,7 @@ package DFS_BFS;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,9 +22,9 @@ public class 여행_경로 {
 
     String airPort;
     int num;
-    Map<String, Integer> used;
+    List<Ticket> used;
 
-    Route(String a, int n, Map<String, Integer> u) {
+    Route(String a, int n, List<Ticket> u) {
       this.airPort = a;
       this.num = n;
       this.used = u;
@@ -39,8 +40,39 @@ public class 여행_경로 {
     }
   }
 
+  static class Ticket {
+
+    String departure;
+    String arrival;
+    int order;
+
+    Ticket(String d, String a, int o) {
+      this.departure = d;
+      this.arrival = a;
+      this.order = o;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      Ticket other = (Ticket) o;
+      return departure == other.departure && arrival == other.arrival;
+    }
+  }
+
+  static class TicketComparator implements Comparator<Ticket> {
+
+    @Override
+    public int compare(Ticket t1, Ticket t2) {
+      if (t1.departure.compareTo(t2.departure) == 0) {
+        return t1.arrival.compareTo(t2.arrival);
+      } else {
+        return t1.departure.compareTo(t2.departure);
+      }
+    }
+  }
+
   static Map<String, List<String>> m;
-  static Map<String, Integer> used, currentUsed;
+  static List<Ticket> used, currentUsed;
   static Queue<Route> q;
   static int t;
   static Route answerRoute = null;
@@ -48,14 +80,14 @@ public class 여행_경로 {
   public static String[] solution(String[][] tickets) {
     t = tickets.length;
     m = new HashMap<>();
-    used = new HashMap<>();
+    used = new ArrayList<>();
     q = new LinkedList<>();
     for (String[] ticket : tickets) {
       if (!m.containsKey(ticket[0])) {
         m.put(ticket[0], new ArrayList<>());
       }
       m.get(ticket[0]).add(ticket[1]);
-      used.put((ticket[0] + ticket[1]), 0);
+      used.add(new Ticket(ticket[0], ticket[1], 0));
     }
 
     for (String key : m.keySet()) {
@@ -63,6 +95,8 @@ public class 여행_경로 {
       Collections.sort(value);
       m.put(key, value);
     }
+
+    used.sort(new TicketComparator());
 
     q.add(new Route("ICN", 1, used));
 
@@ -77,20 +111,22 @@ public class 여행_경로 {
         continue;
       }
       for (String arrival : m.get(route.airPort)) {
-        currentUsed = new HashMap<>(route.used);
+        currentUsed = new ArrayList<>(route.used);
+        Ticket nextTicket = new Ticket(route.airPort, arrival, route.num);
         String ticket = route.airPort + arrival;
-        if (currentUsed.get(ticket) != 0) {
-          continue;
+        for(int i=0;i<currentUsed.size();i++) {
+          if(nextTicket.equals(currentUsed.get(i))) {
+            if(currentUsed.get(i).order != 0) break;
+            currentUsed.set(i, nextTicket);
+          }
         }
-        currentUsed.put(ticket, route.num);
         q.add(new Route(arrival, route.num + 1, currentUsed));
       }
     }
     String[] answer = new String[t + 1];
     answer[0] = "ICN";
-    for (String ticket : answerRoute.used.keySet()) {
-      Integer num = answerRoute.used.get(ticket);
-      answer[num] = ticket.substring(3);
+    for (Ticket ticket : answerRoute.used) {
+      answer[ticket.order] = ticket.arrival;
     }
 
     return answer;
