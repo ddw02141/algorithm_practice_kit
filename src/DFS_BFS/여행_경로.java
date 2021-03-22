@@ -29,21 +29,13 @@ public class 여행_경로 {
       this.num = n;
       this.used = u;
     }
-
-    @Override
-    public String toString() {
-      return "Route{" +
-          "airPort='" + airPort + '\'' +
-          ", num=" + num +
-          ", used=" + used +
-          '}';
-    }
   }
 
   static class Ticket {
 
     String departure;
     String arrival;
+
     int order;
 
     Ticket(String d, String a, int o) {
@@ -55,7 +47,7 @@ public class 여행_경로 {
     @Override
     public boolean equals(Object o) {
       Ticket other = (Ticket) o;
-      return departure == other.departure && arrival == other.arrival;
+      return departure.equals(other.departure) && arrival.equals(other.arrival);
     }
   }
 
@@ -87,7 +79,7 @@ public class 여행_경로 {
         m.put(ticket[0], new ArrayList<>());
       }
       m.get(ticket[0]).add(ticket[1]);
-      used.add(new Ticket(ticket[0], ticket[1], 0));
+      used.add(new Ticket(ticket[0], ticket[1], -1));
     }
 
     for (String key : m.keySet()) {
@@ -102,7 +94,6 @@ public class 여행_경로 {
 
     while (!q.isEmpty()) {
       Route route = q.poll();
-//      System.out.println(route.toString());
       if (route.num == t + 1) {
         answerRoute = route;
         break;
@@ -113,14 +104,16 @@ public class 여행_경로 {
       for (String arrival : m.get(route.airPort)) {
         currentUsed = new ArrayList<>(route.used);
         Ticket nextTicket = new Ticket(route.airPort, arrival, route.num);
-        String ticket = route.airPort + arrival;
-        for(int i=0;i<currentUsed.size();i++) {
-          if(nextTicket.equals(currentUsed.get(i))) {
-            if(currentUsed.get(i).order != 0) break;
+        for (int i = 0; i < currentUsed.size(); i++) {
+          if (nextTicket.equals(currentUsed.get(i))) {
+            if (currentUsed.get(i).order != -1) {
+              continue;
+            }
             currentUsed.set(i, nextTicket);
+            q.add(new Route(arrival, route.num + 1, currentUsed));
+            break;
           }
         }
-        q.add(new Route(arrival, route.num + 1, currentUsed));
       }
     }
     String[] answer = new String[t + 1];
