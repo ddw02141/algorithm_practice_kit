@@ -1,33 +1,21 @@
 package Greedy;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class 조이스틱 {
 
   public static int solution(String name) {
     int n = name.length();
     int change = name.chars().map(c -> Math.min(c - 'A', 'A' - c + 26)).sum();
-    if (change == 0) {
-      return change;
-    }
     int route = n - 1;
-    List<Integer> l = new ArrayList<>();
+
     for (int i = 0; i < n; i++) {
-      if (name.charAt(i) != 'A') {
-        l.add(i);
+      int next = i + 1;
+      while (next < n && name.charAt(next) == 'A') {
+        next++;
       }
-    }
-    if (l.size() == 1) {
-      route = Math.min(route, Math.min(l.get(0), n - l.get(0)));
-    } else {
-      route = Math.min(route, l.get(l.size() - 1));
-      route = Math.min(route, n - l.get(0));
-      for (int idx = 0; idx < l.size() - 1; idx++) {
-        int start = l.get(idx);
-        int end = l.get(idx + 1);
-        route = Math.min(route, start + (n + start - end));
-      }
+      // next : i에서 가장 가까우면서 A가 아닌 곳의 index
+      // ...(i)AAAAA(next)....
+      // i와 next 사이의 A를 지나지 않는 경로 => 아래 계산식
+      route = Math.min(route, i + n - next + Math.min(i, n - next));
     }
     return change + route;
 
@@ -43,5 +31,6 @@ public class 조이스틱 {
     System.out.println(solution("AAAAZZAAAA")); // Expect 7
     System.out.println(solution("ABABABABAB")); // Expect 14
     System.out.println(solution("AABAABAABB")); // Expect 12
+    System.out.println(solution("AAABBBBBAA")); // Expect 12
   }
 }
