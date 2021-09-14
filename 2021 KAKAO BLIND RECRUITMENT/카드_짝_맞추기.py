@@ -19,14 +19,11 @@ def solution(board, r, c):
             if board[x][y]:
                 answer += 1  # 뒤집는 횟수
                 boardMap[board[x][y]].append((x, y))
-    print("answer:", answer)
-    # print(boardMap)
     answer += backtrack(board, boardMap, visited, (r, c), 0, [])
     return answer
 
 
 def backtrack(board, boardMap, visited, grid, moves, order):
-    # print("backtrack", boardMap, visited, grid, moves)
     if len(boardMap) == sum(visited):
         return moves
     answer = float("inf")
@@ -34,10 +31,10 @@ def backtrack(board, boardMap, visited, grid, moves, order):
         if not visited[i] and i in boardMap:
             firstCard = boardMap[i][0]
             secondCard = boardMap[i][1]
-            gridToFirstCard = move(board, visited, grid, firstCard)
-            gridToSecondCard = move(board, visited, grid, secondCard)
-            firstCardToSecondCard = move(board, visited, firstCard, secondCard)
-            secondCardToFirstCard = move(board, visited, secondCard, firstCard)
+            gridToFirstCard = move(board, visited, grid, firstCard, order)
+            gridToSecondCard = move(board, visited, grid, secondCard, order)
+            firstCardToSecondCard = move(board, visited, firstCard, secondCard, order)
+            secondCardToFirstCard = move(board, visited, secondCard, firstCard, order)
             moves = moves + gridToFirstCard + firstCardToSecondCard
             visited[i] = True
             firstCardFirst = backtrack(board, boardMap, visited, secondCard, moves, order + [(i, 1)])
@@ -52,95 +49,60 @@ def backtrack(board, boardMap, visited, grid, moves, order):
     return answer
 
 
-# 0 1 0 1
-# 좌 -> 우: 1
-# 우 -> 좌: 2
-def move(board, visited, grid1, grid2):
+def move(board, visited, grid1, grid2, order):
     xFirst = 0
     yFirst = 0
     x1, y1 = grid1
     x2, y2 = grid2
     # (x1, y1) -> (x2, y1)
-    xFirst += moveX(board, visited, x1, x2, y1)
-    # print("xFirst:", xFirst)
+    xFirst += moveX(board, visited, x1, x2, y1, order)
     # (x2, y1) -> (x2, y2)
-    xFirst += moveY(board, visited, y1, y2, x2)
-    # print("xFirst:", xFirst)
+    xFirst += moveY(board, visited, y1, y2, x2, order)
     # (x1, y1) -> (x1, y2)
-    yFirst += moveY(board, visited, y1, y2, x1)
-    # print("yFirst:", yFirst)
+    yFirst += moveY(board, visited, y1, y2, x1, order)
     # (x1, y2) -> (x2, y2)
-    yFirst += moveX(board, visited, x1, x2, y2)
-    # print("yFirst:", yFirst)
+    yFirst += moveX(board, visited, x1, x2, y2, order)
 
-    # for i in range(BOARD_SIZE):
-    #     for j in range(BOARD_SIZE):
-    #         if not visited[board[i][j]]:
-    #             print(board[i][j], " ", end='')
-    #         else:
-    #             print("0 ", end='')
-    #     print()
-    # print(grid1, "->", grid2)
-    # print("min(", xFirst, ",", yFirst, "):", min(xFirst, yFirst))
     return min(xFirst, yFirst)
 
 
-def moveX(board, visited, x1, x2, y):
+def moveX(board, visited, x1, x2, y, order):
     answer = 0
     if x1 != x2:
-        if x2 > x1:
-            if x2 == BOARD_SIZE - 1:
+        answer += 1
+        for x in range(min(x1, x2) + 1, max(x1, x2)):
+            if board[x][y] and not visited[board[x][y]]:
                 answer += 1
-                for x in range(x1+1, x2):
-                    if board[x][y] and not visited[board[x][y]]:
-                        answer += 1
-            else:
-                answer += (x2 - x1)
-        else:  # x1 > x2
-            if x2 == 0:
-                answer += 1
-                for x in range(x2+1, x1):
-                    if board[x][y] and not visited[board[x][y]]:
-                        answer += 1
-            else:
-                answer += (x1 - x2)
+        if answer == 1 and abs(x1 - x2) == 2 and x2 in (1, 2) and (board[x2][y] == 0 or visited[board[x2][y]]):
+            answer += 1
     return answer
 
 
-def moveY(board, visited, y1, y2, x):
+def moveY(board, visited, y1, y2, x, order):
     answer = 0
     if y1 != y2:
-        if y2 > y1:
-            if y2 == BOARD_SIZE - 1:
+        answer += 1
+        for y in range(min(y1, y2) + 1, max(y1, y2)):
+            if board[x][y] and not visited[board[x][y]]:
                 answer += 1
-                for y in range(y1+1, y2):
-                    if board[x][y] and not visited[board[x][y]]:
-                        answer += 1
-            else:
-                answer += (y2 - y1)
-        else:  # y1 > y2
-            if y2 == 0:
-                answer += 1
-                for y in range(y2+1, y1):
-                    if board[x][y] and not visited[board[x][y]]:
-                        answer += 1
-            else:
-                answer += (y1 - y2)
+        if answer == 1 and abs(y1 - y2) == 2 and y2 in (1, 2) and (board[x][y2] == 0 or visited[board[x][y2]]):
+            answer += 1
     return answer
 
 
 if __name__ == "__main__":
-    # print("------------------ Test Case 1 ------------------")
-    # sol = solution([[1, 0, 0, 3], [2, 0, 0, 0], [0, 0, 0, 2], [3, 0, 1, 0]], 1, 0)
-    # ans = 14
-    # assert ans == sol, f"Expected {ans} Actual {sol}"
-    # print("------------------ Test Case 2 ------------------")
-    # sol = solution([[3, 0, 0, 2], [0, 0, 1, 0], [0, 1, 0, 0], [2, 0, 0, 3]], 0, 1)
-    # ans = 16
-    # assert ans == sol, f"Expected {ans} Actual {sol}"
+    print("------------------ Test Case 1 ------------------")
+    sol = solution([[1, 0, 0, 3], [2, 0, 0, 0], [0, 0, 0, 2], [3, 0, 1, 0]], 1, 0)
+    ans = 14
+    assert ans == sol, f"Expected {ans} Actual {sol}"
+    print("------------------ Test Case 2 ------------------")
+    sol = solution([[3, 0, 0, 2], [0, 0, 1, 0], [0, 1, 0, 0], [2, 0, 0, 3]], 0, 1)
+    ans = 16
+    assert ans == sol, f"Expected {ans} Actual {sol}"
     print("------------------ Test Case 3 ------------------")
-    sol = solution([[1, 5, 0, 2], [6, 4, 3, 0], [0, 2, 1, 5], [3, 0, 6, 4]], 0, 0)
+    sol = solution([[1, 5, 0, 2],
+                    [6, 4, 3, 0],
+                    [0, 2, 1, 5],
+                    [3, 0, 6, 4]], 0, 0)
     ans = 32
     assert ans == sol, f"Expected {ans} Actual {sol}"
-    [1, (1, 2), 5, (2, 1), 2, (1, 2), 6, (2, 1), 4, (1, 2), 3, (2, 1)]
-    move([[1, 5, 0, 2], [6, 4, 3, 0], [0, 2, 1, 5], [3, 0, 6, 4]], [False for _ in range(MAX_CARD)], (2, 2), (0, 0))
