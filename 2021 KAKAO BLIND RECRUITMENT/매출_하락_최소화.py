@@ -1,6 +1,39 @@
+# https://programmers.co.kr/learn/courses/30/lessons/72416
+# https://yabmoons.tistory.com/625
+
+
 def solution(sales, links):
-    answer = 0
-    return answer
+    sales.insert(0, -1)
+    tree = [[] for _ in range(len(sales))]
+    for parent, child in links:
+        tree[parent].append(child)
+    dp = [[float("inf"), float("inf")] for _ in range(len(sales))]
+    # dp[i][0] = i가 워크숍에 참석하지 않을 때, i를 루트로 가지는 직원들이 워크숍에 참석 할 때 직원 매출의 최소값
+    # dp[i][1] = i가 워크숍에 참석할 때, i를 루트로 가지는 직원들이 워크숍에 참석 할 때 직원 매출의 최소값
+    dfs(1, tree, sales, dp)
+    # print(dp)
+    return min(dp[1][0], dp[1][1])
+
+
+def dfs(node, tree, sales, dp):
+    childs = tree[node]
+    if not childs:
+        # Leaf Node
+        dp[node][0] = 0
+        dp[node][1] = sales[node]
+        return
+    for child in childs:
+        dfs(child, tree, sales, dp)
+    summ = sum(min(dp[child][0], dp[child][1]) for child in childs)
+    dp[node][1] = sales[node] + summ
+    net = float("inf")
+    attendee = -1
+    for child in childs:
+        if dp[child][1] - dp[child][0] < net:
+            net = dp[child][1] - dp[child][0]
+            attendee = child
+    # print("node", node, "attendee", attendee)
+    dp[node][0] = summ - min(dp[attendee][0], dp[attendee][1]) + dp[attendee][1]
 
 
 if __name__ == "__main__":
