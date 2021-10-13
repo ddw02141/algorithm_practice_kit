@@ -5,7 +5,7 @@ def solution(board):
     answer = float("inf")
     for i in range(n):
         for j in range(n):
-            answer = min(answer, dp[i][j][n - 1][n - 1])
+            answer = answer if answer < dp[i][j][n - 1][n - 1] else dp[i][j][n - 1][n - 1]
     return answer
 
 
@@ -27,9 +27,10 @@ def dfs(grid1, grid2, n, board, dp, move):
         if 0 <= newX1 < n and 0 <= newX2 < n and 0 <= newY1 < n and 0 <= newY2 < n:
             if board[newX1][newY1] == 0 and board[newX2][newY2] == 0:
                 if (newX1, newY1) < (newX2, newY2):
-                    answer = min(answer, dfs((newX1, newY1), (newX2, newY2), n, board, dp, move + 1))
+                    possibleAnswer = dfs((newX1, newY1), (newX2, newY2), n, board, dp, move + 1)
                 else:
-                    answer = min(answer, dfs((newX2, newY2), (newX1, newY1), n, board, dp, move + 1))
+                    possibleAnswer = dfs((newX2, newY2), (newX1, newY1), n, board, dp, move + 1)
+                answer = answer if answer < possibleAnswer else possibleAnswer
     if x1 == x2 and y1 + 1 == y2:
         #                grid2
         # grid1 grid2 => grid1
@@ -37,28 +38,32 @@ def dfs(grid1, grid2, n, board, dp, move):
             newX2 = x1 - 1
             newY2 = y1
             if board[newX2][newY2] == 0:
-                answer = min(answer, dfs((newX2, newY2), (x1, y1), n, board, dp, move + 1))
+                possibleAnswer = dfs((newX2, newY2), (x1, y1), n, board, dp, move + 1)
+                answer = answer if answer < possibleAnswer else possibleAnswer
         # grid1 grid2 => grid1
         #                grid2
         if x2 + 1 < n and board[x2 + 1][y2] == 0:
             newX2 = x1 + 1
             newY2 = y1
             if board[newX2][newY2] == 0:
-                answer = min(answer, dfs((x1, y1), (newX2, newY2), n, board, dp, move + 1))
+                possibleAnswer = dfs((x1, y1), (newX2, newY2), n, board, dp, move + 1)
+                answer = answer if answer < possibleAnswer else possibleAnswer
         #                      grid1
         # grid1 grid2 =>       grid2
         if 0 <= x1 - 1 and board[x1 - 1][y1] == 0:
             newX1 = x2 - 1
             newY1 = y2
             if board[newX1][newY1] == 0:
-                answer = min(answer, dfs((newX1, newY1), (x2, y2), n, board, dp, move + 1))
+                possibleAnswer = dfs((newX1, newY1), (x2, y2), n, board, dp, move + 1)
+                answer = answer if answer < possibleAnswer else possibleAnswer
         # grid1 grid2 =>       grid2
         #                      grid1
         if x1 + 1 < n and board[x1 + 1][y1] == 0:
             newX1 = x2 + 1
             newY1 = y2
             if board[newX1][newY1] == 0:
-                answer = min(answer, dfs((x2, y2), (newX1, newY1), n, board, dp, move + 1))
+                possibleAnswer = dfs((x2, y2), (newX1, newY1), n, board, dp, move + 1)
+                answer = answer if answer < possibleAnswer else possibleAnswer
     if y1 == y2 and x1 + 1 == x2:
         # grid1 => grid2 grid1
         # grid2
@@ -66,28 +71,33 @@ def dfs(grid1, grid2, n, board, dp, move):
             newX2 = x1
             newY2 = y1 - 1
             if board[newX2][newY2] == 0:
-                answer = min(answer, dfs((newX2, newY2), (x1, y1), n, board, dp, move + 1))
+                possibleAnswer = dfs((newX2, newY2), (x1, y1), n, board, dp, move + 1)
+                answer = answer if answer < possibleAnswer else possibleAnswer
         # grid1 => grid1 grid2
         # grid2
         if y2 + 1 < n and board[x2][y2 + 1] == 0:
             newX2 = x1
             newY2 = y1 + 1
             if board[newX2][newY2] == 0:
-                answer = min(answer, dfs((x1, y1), (newX2, newY2), n, board, dp, move + 1))
+                possibleAnswer = dfs((x1, y1), (newX2, newY2), n, board, dp, move + 1)
+                answer = answer if answer < possibleAnswer else possibleAnswer
         # grid1
         # grid2 => grid2 grid1
         if y1 + 1 < n and board[x1][y1 + 1] == 0:
             newX1 = x2
             newY1 = y2 + 1
             if board[newX1][newY1] == 0:
-                answer = min(answer, dfs((x2, y2), (newX1, newY1), n, board, dp, move + 1))
+                possibleAnswer = dfs((x2, y2), (newX1, newY1), n, board, dp, move + 1)
+                answer = answer if answer < possibleAnswer else possibleAnswer
         # grid1
         # grid2 => grid1 grid2
         if 0 <= y1 - 1 and board[x1][y1 - 1] == 0:
             newX1 = x2
             newY1 = y2 - 1
             if board[newX1][newY1] == 0:
-                answer = min(answer, dfs((newX1, newY1), (x2, y2), n, board, dp, move + 1))
+                possibleAnswer = dfs((newX1, newY1), (x2, y2), n, board, dp, move + 1)
+                answer = answer if answer < possibleAnswer else possibleAnswer
+
     return answer
 
 
