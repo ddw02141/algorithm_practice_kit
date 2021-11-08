@@ -1,4 +1,8 @@
-from collections import defaultdict
+# https://programmers.co.kr/learn/courses/30/lessons/42892
+# https://programmers.co.kr/questions/3723
+import sys
+
+sys.setrecursionlimit(10 ** 6)
 
 
 class Node:
@@ -10,37 +14,27 @@ class Node:
         self.y = y
 
     def __lt__(self, other):
-        return self.x < other.x
-
-    def __str__(self):
-        return "idx: %d left: %d right: %d x: %d y: %d" % (
-            self.idx, self.left.idx if self.left else -1, self.right.idx if self.right else -1, self.x, self.y,
-        )
+        return self.y < other.y
 
 
 def solution(nodeinfo):
-    answer = []
     nodeByLevel = {node[1]: list() for node in nodeinfo}
     for i, node in enumerate(nodeinfo):
         nodeByLevel[node[1]].append(Node(i + 1, node[0], node[1]))
-    root = nodeByLevel[min(nodeByLevel.keys())][0]
+    root = nodeByLevel[max(nodeByLevel.keys())][0]
     levels = list(nodeByLevel.keys())
     levels.sort(reverse=True)
-
-    def printNodeByLevel():
-        for level in levels:
-            print("level:", level)
-            for node in nodeByLevel[level]:
-                print(node)
-        print("------------------------------------")
 
     for i, level in enumerate(levels):
         nodes = nodeByLevel[level]
         nodes.sort()
         for node in nodes:
             insert(root, node)
-        printNodeByLevel()
-    return answer
+    preOrderResult = list()
+    postOrderResult = list()
+    preOrder(root, preOrderResult)
+    postOrder(root, postOrderResult)
+    return [preOrderResult, postOrderResult]
 
 
 def insert(current, target):
@@ -54,6 +48,22 @@ def insert(current, target):
             current.right = target
         else:
             insert(current.right, target)
+
+
+def preOrder(root, answer):
+    if not root:
+        return
+    answer.append(root.idx)
+    preOrder(root.left, answer)
+    preOrder(root.right, answer)
+
+
+def postOrder(root, answer):
+    if not root:
+        return
+    postOrder(root.left, answer)
+    postOrder(root.right, answer)
+    answer.append(root.idx)
 
 
 if __name__ == "__main__":
