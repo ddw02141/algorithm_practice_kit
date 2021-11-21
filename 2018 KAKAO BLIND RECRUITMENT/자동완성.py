@@ -1,25 +1,26 @@
+from collections import defaultdict
 import sys
 
 sys.setrecursionlimit(1000000)
 
 
 class Node:
-    def __init__(self, c):
-        self.character = c
+    def __init__(self):
         self.num_words = 0
-        self.next_words = dict()
+        self.next_words = defaultdict(Node)
 
     def insert(self, word):
         self.num_words += 1
         if not word:
             return
-        if not word[0] in self.next_words:
-            self.next_words[word[0]] = Node(word[0])
-        self.next_words[word[0]].insert(word[1:])
+        current = self
+        for w in word:
+            current.next_words[w].num_words += 1
+            current = current.next_words[w]
 
 
 def solution(words):
-    root = Node('*')
+    root = Node()
     for word in words:
         root.insert(word)
     answer = 0
@@ -28,7 +29,9 @@ def solution(words):
         current = root
         for c in word:
             answer += 1
+            assert c in current.next_words
             child_node = current.next_words[c]
+            assert child_node is not None
             if child_node.num_words == 1:
                 break
             current = child_node
