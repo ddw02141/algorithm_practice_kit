@@ -1,19 +1,31 @@
+from heapq import heappush, heappop
+
+
 def solution(n, start, end, roads, traps):
-    answer = 0
-    map = [[] for _ in range(n + 1)]
-    rMap = [[] for _ in range(n + 1)]
+    fromList = [[] for _ in range(n + 1)]
+    toList = [[] for _ in range(n + 1)]
     for p, q, s in roads:
-        map[p].append((q, s))
-        if p in traps:
-            rMap[q].append((p, s))
-        if q in traps:
-            rMap[q].append((p, s))
-    isReversed = False
-    visited = [False for _ in range(n+1)]
-    Rvisited = [False for _ in range(n + 1)]
-    print(map)
-    print(rMap)
-    return answer
+        fromList[p].append((q, s))
+        toList[q].append((p, s))
+    distance = [[float("inf") for _ in range(2)] for _ in range(n + 1)]
+    distance[start][0] = 0
+    distance[start][1] = 0
+    heap = [(0, start, False)]
+    while heap:
+        curDist, node, isReversed = heappop(heap)
+        targetList = fromList
+        if isReversed:
+            targetList = toList
+        for childNode, dist in targetList[node]:
+            if childNode in traps:
+                if distance[node][1 if isReversed else 0] + dist < distance[childNode][0 if isReversed else 1]:
+                    distance[childNode][0 if isReversed else 1] = distance[node][1 if isReversed else 0] + dist
+                    heappush(heap, (distance[childNode][0 if isReversed else 1], childNode, not isReversed))
+            else:
+                if distance[node][1 if isReversed else 0] + dist < distance[childNode][1 if isReversed else 0]:
+                    distance[childNode][1 if isReversed else 0] = distance[node][1 if isReversed else 0] + dist
+                    heappush(heap, (distance[childNode][1 if isReversed else 0], childNode, isReversed))
+    return min(distance[end][0], distance[end][1])
 
 
 if __name__ == "__main__":
