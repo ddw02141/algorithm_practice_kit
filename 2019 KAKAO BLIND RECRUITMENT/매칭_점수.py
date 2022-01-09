@@ -20,11 +20,7 @@ class MyHTMLParser(HTMLParser):
                 if attr[0] == "href":
                     self.external_urls.add(attr[1])
 
-    # def handle_endtag(self, tag):
-    #     print("Encountered an end tag :", tag)
-    #
     def handle_data(self, data):
-        prev_score = self.score
         data_lower = data.lower()
         if data_lower == self.word:
             self.score += 1
@@ -41,11 +37,7 @@ def solution(word, pages):
     domain_to_parser = dict()
     for page in pages:
         parser = MyHTMLParser(word)
-        # print("parser.score:", parser.score)
         parser.feed(page)
-        # print(parser.domain)
-        # print(parser.external_urls)
-        # print(parser.score)
         parsers.append(parser)
         domain_to_score[parser.domain] = parser.score
         domain_to_parser[parser.domain] = parser
