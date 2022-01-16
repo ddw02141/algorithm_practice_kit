@@ -13,8 +13,8 @@ def solution(n, start, end, roads, traps):
     distanceMap = dict()
     answer = INF
     # Cartesian product
-    for trapStatus in product([0, 1], repeat=t):
-        roadMap[trapStatus] = [[INF for _ in range(n + 1)] for _ in range(n + 1)]
+    for trapStatus in product([False, True], repeat=t):
+        roadMap[trapStatus] = [list() for _ in range(n + 1)]
         visited[trapStatus] = [False for _ in range(n + 1)]
         distanceMap[trapStatus] = [INF for _ in range(n + 1)]
         for p, q, s in roads:
@@ -24,9 +24,9 @@ def solution(n, start, end, roads, traps):
             if q in traps and trapStatus[traps.index(q)]:
                 qTrapped = True
             if pTrapped == qTrapped:
-                roadMap[trapStatus][p][q] = min(roadMap[trapStatus][p][q], s)
+                roadMap[trapStatus][p].append((q, s))
             else:
-                roadMap[trapStatus][q][p] = min(roadMap[trapStatus][q][p], s)
+                roadMap[trapStatus][q].append((p, s))
     initialTrapStatus = tuple(0 for _ in range(t))
     distanceMap[initialTrapStatus][start] = 0
     heap = [(0, start, initialTrapStatus)]
@@ -36,20 +36,18 @@ def solution(n, start, end, roads, traps):
         if node == end:
             answer = min(answer, curD)
             continue
-        for childNode in range(n + 1):
-            s = roadMap[trapStatus][node][childNode]
-            if s != INF:
-                trapStatus = tuple(ts for ts in trapStatus)
-                nextTrapStatus = tuple(ts for ts in trapStatus)
-                if childNode in traps:
-                    nextTrapStatus = list(nextTrapStatus)
-                    tIdx = traps.index(childNode)
-                    nextTrapStatus[tIdx] = int(not trapStatus[tIdx])
-                    nextTrapStatus = tuple(nextTrapStatus)
-                if not visited[nextTrapStatus][childNode]:
-                    if curD + s < distanceMap[nextTrapStatus][childNode]:
-                        distanceMap[nextTrapStatus][childNode] = curD + s
-                        heappush(heap, (distanceMap[nextTrapStatus][childNode], childNode, nextTrapStatus))
+        for childNode, s in roadMap[trapStatus][node]:
+            trapStatus = tuple(ts for ts in trapStatus)
+            nextTrapStatus = tuple(ts for ts in trapStatus)
+            if childNode in traps:
+                nextTrapStatus = list(nextTrapStatus)
+                tIdx = traps.index(childNode)
+                nextTrapStatus[tIdx] = not trapStatus[tIdx]
+                nextTrapStatus = tuple(nextTrapStatus)
+            if not visited[nextTrapStatus][childNode]:
+                if curD + s < distanceMap[nextTrapStatus][childNode]:
+                    distanceMap[nextTrapStatus][childNode] = curD + s
+                    heappush(heap, (distanceMap[nextTrapStatus][childNode], childNode, nextTrapStatus))
     return answer
 
 
