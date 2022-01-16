@@ -1,6 +1,5 @@
 # https://programmers.co.kr/learn/courses/30/lessons/81304
 # https://tech.kakao.com/2021/07/08/2021-%EC%B9%B4%EC%B9%B4%EC%98%A4-%EC%9D%B8%ED%84%B4%EC%8B%AD-for-tech-developers-%EC%BD%94%EB%94%A9-%ED%85%8C%EC%8A%A4%ED%8A%B8-%ED%95%B4%EC%84%A4/#:~:text=%ED%95%B4%EA%B2%B0%ED%95%A0%20%EC%88%98%20%EC%9E%88%EC%8A%B5%EB%8B%88%EB%8B%A4.-,%EB%AC%B8%EC%A0%9C%204,-%EB%AC%B8%EC%A0%9C%20%ED%92%80%EC%9D%B4%20%3A%20Lv4
-from itertools import product
 from heapq import heappush, heappop
 
 INF = float("inf")
@@ -9,7 +8,13 @@ INF = float("inf")
 def isTrapped(node, trapNodeToIdx, trapStatus):
     if node not in trapNodeToIdx:
         return False
-    return trapStatus[trapNodeToIdx[node]]
+    return trapStatus & (1 << trapNodeToIdx[node]) > 0
+
+
+def getNextStatus(node, trapNodeToIdx, trapStatus):
+    if node in trapNodeToIdx:
+        return trapStatus ^ (1 << trapNodeToIdx[node])
+    return trapStatus
 
 
 def solution(n, start, end, roads, traps):
@@ -20,7 +25,7 @@ def solution(n, start, end, roads, traps):
     distance = dict()
     answer = INF
     # Cartesian product
-    for trapStatus in product([False, True], repeat=t):
+    for trapStatus in range(2 ** t):
         roadMap[trapStatus] = [list() for _ in range(n + 1)]
         visited[trapStatus] = [False for _ in range(n + 1)]
         distance[trapStatus] = [INF for _ in range(n + 1)]
@@ -31,7 +36,7 @@ def solution(n, start, end, roads, traps):
                 roadMap[trapStatus][p].append((q, s))
             else:
                 roadMap[trapStatus][q].append((p, s))
-    initialTrapStatus = tuple(0 for _ in range(t))
+    initialTrapStatus = 0
     distance[initialTrapStatus][start] = 0
     heap = [(0, start, initialTrapStatus)]
     while heap:
@@ -41,12 +46,7 @@ def solution(n, start, end, roads, traps):
             answer = min(answer, curD)
             continue
         for childNode, s in roadMap[trapStatus][node]:
-            nextTrapStatus = tuple(ts for ts in trapStatus)
-            if childNode in traps:
-                nextTrapStatus = list(nextTrapStatus)
-                tIdx = trapNodeToIdx[childNode]
-                nextTrapStatus[tIdx] = not trapStatus[tIdx]
-                nextTrapStatus = tuple(nextTrapStatus)
+            nextTrapStatus = getNextStatus(childNode, trapNodeToIdx, trapStatus)
             if not visited[nextTrapStatus][childNode]:
                 if curD + s < distance[nextTrapStatus][childNode]:
                     distance[nextTrapStatus][childNode] = curD + s
