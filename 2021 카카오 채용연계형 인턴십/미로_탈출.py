@@ -6,29 +6,33 @@ from heapq import heappush, heappop
 INF = float("inf")
 
 
+def isTrapped(node, trapNodeToIdx, trapStatus):
+    if node not in trapNodeToIdx:
+        return False
+    return trapStatus[trapNodeToIdx[node]]
+
+
 def solution(n, start, end, roads, traps):
     t = len(traps)
+    trapNodeToIdx = {trap: i for i, trap in enumerate(traps)}
     roadMap = dict()
     visited = dict()
-    distanceMap = dict()
+    distance = dict()
     answer = INF
     # Cartesian product
     for trapStatus in product([False, True], repeat=t):
         roadMap[trapStatus] = [list() for _ in range(n + 1)]
         visited[trapStatus] = [False for _ in range(n + 1)]
-        distanceMap[trapStatus] = [INF for _ in range(n + 1)]
+        distance[trapStatus] = [INF for _ in range(n + 1)]
         for p, q, s in roads:
-            pTrapped = qTrapped = False
-            if p in traps and trapStatus[traps.index(p)]:
-                pTrapped = True
-            if q in traps and trapStatus[traps.index(q)]:
-                qTrapped = True
+            pTrapped = isTrapped(p, trapNodeToIdx, trapStatus)
+            qTrapped = isTrapped(q, trapNodeToIdx, trapStatus)
             if pTrapped == qTrapped:
                 roadMap[trapStatus][p].append((q, s))
             else:
                 roadMap[trapStatus][q].append((p, s))
     initialTrapStatus = tuple(0 for _ in range(t))
-    distanceMap[initialTrapStatus][start] = 0
+    distance[initialTrapStatus][start] = 0
     heap = [(0, start, initialTrapStatus)]
     while heap:
         curD, node, trapStatus = heappop(heap)
@@ -37,17 +41,16 @@ def solution(n, start, end, roads, traps):
             answer = min(answer, curD)
             continue
         for childNode, s in roadMap[trapStatus][node]:
-            trapStatus = tuple(ts for ts in trapStatus)
             nextTrapStatus = tuple(ts for ts in trapStatus)
             if childNode in traps:
                 nextTrapStatus = list(nextTrapStatus)
-                tIdx = traps.index(childNode)
+                tIdx = trapNodeToIdx[childNode]
                 nextTrapStatus[tIdx] = not trapStatus[tIdx]
                 nextTrapStatus = tuple(nextTrapStatus)
             if not visited[nextTrapStatus][childNode]:
-                if curD + s < distanceMap[nextTrapStatus][childNode]:
-                    distanceMap[nextTrapStatus][childNode] = curD + s
-                    heappush(heap, (distanceMap[nextTrapStatus][childNode], childNode, nextTrapStatus))
+                if curD + s < distance[nextTrapStatus][childNode]:
+                    distance[nextTrapStatus][childNode] = curD + s
+                    heappush(heap, (distance[nextTrapStatus][childNode], childNode, nextTrapStatus))
     return answer
 
 
