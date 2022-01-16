@@ -1,31 +1,56 @@
+# https://programmers.co.kr/learn/courses/30/lessons/81304
+# https://tech.kakao.com/2021/07/08/2021-%EC%B9%B4%EC%B9%B4%EC%98%A4-%EC%9D%B8%ED%84%B4%EC%8B%AD-for-tech-developers-%EC%BD%94%EB%94%A9-%ED%85%8C%EC%8A%A4%ED%8A%B8-%ED%95%B4%EC%84%A4/#:~:text=%ED%95%B4%EA%B2%B0%ED%95%A0%20%EC%88%98%20%EC%9E%88%EC%8A%B5%EB%8B%88%EB%8B%A4.-,%EB%AC%B8%EC%A0%9C%204,-%EB%AC%B8%EC%A0%9C%20%ED%92%80%EC%9D%B4%20%3A%20Lv4
+from itertools import product
 from heapq import heappush, heappop
+
+INF = float("inf")
 
 
 def solution(n, start, end, roads, traps):
-    fromList = [[] for _ in range(n + 1)]
-    toList = [[] for _ in range(n + 1)]
-    for p, q, s in roads:
-        fromList[p].append((q, s))
-        toList[q].append((p, s))
-    distance = [[float("inf") for _ in range(2)] for _ in range(n + 1)]
-    distance[start][0] = 0
-    distance[start][1] = 0
-    heap = [(0, start, False)]
-    while heap:
-        curDist, node, isReversed = heappop(heap)
-        targetList = fromList
-        if isReversed:
-            targetList = toList
-        for childNode, dist in targetList[node]:
-            if childNode in traps:
-                if distance[node][1 if isReversed else 0] + dist < distance[childNode][0 if isReversed else 1]:
-                    distance[childNode][0 if isReversed else 1] = distance[node][1 if isReversed else 0] + dist
-                    heappush(heap, (distance[childNode][0 if isReversed else 1], childNode, not isReversed))
+    t = len(traps)
+    roadMap = dict()
+    visited = dict()
+    distanceMap = dict()
+    answer = INF
+    # Cartesian product
+    for trapStatus in product([0, 1], repeat=t):
+        roadMap[trapStatus] = [[INF for _ in range(n + 1)] for _ in range(n + 1)]
+        visited[trapStatus] = [False for _ in range(n + 1)]
+        distanceMap[trapStatus] = [INF for _ in range(n + 1)]
+        for p, q, s in roads:
+            pTrapped = qTrapped = False
+            if p in traps and trapStatus[traps.index(p)]:
+                pTrapped = True
+            if q in traps and trapStatus[traps.index(q)]:
+                qTrapped = True
+            if pTrapped == qTrapped:
+                roadMap[trapStatus][p][q] = min(roadMap[trapStatus][p][q], s)
             else:
-                if distance[node][1 if isReversed else 0] + dist < distance[childNode][1 if isReversed else 0]:
-                    distance[childNode][1 if isReversed else 0] = distance[node][1 if isReversed else 0] + dist
-                    heappush(heap, (distance[childNode][1 if isReversed else 0], childNode, isReversed))
-    return min(distance[end][0], distance[end][1])
+                roadMap[trapStatus][q][p] = min(roadMap[trapStatus][q][p], s)
+    initialTrapStatus = tuple(0 for _ in range(t))
+    distanceMap[initialTrapStatus][start] = 0
+    heap = [(0, start, initialTrapStatus)]
+    while heap:
+        curD, node, trapStatus = heappop(heap)
+        visited[trapStatus][node] = True
+        if node == end:
+            answer = min(answer, curD)
+            continue
+        for childNode in range(n + 1):
+            s = roadMap[trapStatus][node][childNode]
+            if s != INF:
+                trapStatus = tuple(ts for ts in trapStatus)
+                nextTrapStatus = tuple(ts for ts in trapStatus)
+                if childNode in traps:
+                    nextTrapStatus = list(nextTrapStatus)
+                    tIdx = traps.index(childNode)
+                    nextTrapStatus[tIdx] = int(not trapStatus[tIdx])
+                    nextTrapStatus = tuple(nextTrapStatus)
+                if not visited[nextTrapStatus][childNode]:
+                    if curD + s < distanceMap[nextTrapStatus][childNode]:
+                        distanceMap[nextTrapStatus][childNode] = curD + s
+                        heappush(heap, (distanceMap[nextTrapStatus][childNode], childNode, nextTrapStatus))
+    return answer
 
 
 if __name__ == "__main__":
