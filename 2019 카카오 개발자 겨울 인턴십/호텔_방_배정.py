@@ -1,32 +1,26 @@
-from collections import defaultdict
-from heapq import heappush, heappop, heapify
+# https://programmers.co.kr/questions/21382
+import sys
+
+sys.setrecursionlimit(10000000)
 
 
 def solution(k, room_number):
     # 1 <= k <= 10^12
     answer = []
-    answerDict = dict()
-    rooms = list()
-    roomToIdx = defaultdict(list)
-    for idx, room in enumerate(room_number):
-        if room not in rooms:
-            heappush(rooms, room)
-        heappush(roomToIdx[room], idx + 1)
-    while rooms:
-        room = heappop(rooms)
-        indices = roomToIdx[room]
-        if not indices:
-            continue
-        idx = heappop(indices)
-        answerDict[idx] = room
-        roomToIdx[room + 1] = roomToIdx[room + 1] + indices
-        heapify(roomToIdx[room + 1])
-        if room + 1 not in rooms:
-            heappush(rooms, room + 1)
-    # print(answerDict)
-    for idx in range(len(room_number)):
-        answer.append(answerDict[idx + 1])
+    nextRoomToSeek = dict()
+    for room in room_number:
+        answer.append(findRoom(room, nextRoomToSeek))
     return answer
+
+
+def findRoom(room, nextRoomToSeek):
+    if room not in nextRoomToSeek:
+        nextRoomToSeek[room] = room + 1
+        return room
+
+    finalRoom = findRoom(nextRoomToSeek[room], nextRoomToSeek)
+    nextRoomToSeek[room] = finalRoom + 1
+    return finalRoom
 
 
 if __name__ == "__main__":
