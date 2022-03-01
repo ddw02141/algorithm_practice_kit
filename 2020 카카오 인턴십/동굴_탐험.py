@@ -1,12 +1,7 @@
-import sys
+from collections import deque, defaultdict
 
-sys.setrecursionlimit(10000000)
-
-answer = True
-directedGraph = list()
-nodeOrder = 0
-discovered = list()
-finished = list()
+directedGraph = defaultdict(list)
+N = 0
 
 
 def solution(n, path, order):
@@ -17,18 +12,18 @@ def solution(n, path, order):
     @param order: order[i][0] node should be visited before than visiting order[i][1] node
     @return: Returns whether all node visits are possible while keeping order conditions.
     """
-    global answer
-    graph = [list() for _ in range(n)]
+    global N
+    N = n
+    graph = defaultdict(list)
     for start, end in path:
         graph[start].append(end)
         graph[end].append(start)
     global directedGraph
-    directedGraph = [list() for _ in range(n)]
 
-    visited = [False for _ in range(n)]
-    q = [0]
+    visited = defaultdict(bool)
+    q = deque([0])
     while q:
-        node = q.pop()
+        node = q.popleft()
         if visited[node]:
             continue
         visited[node] = True
@@ -38,29 +33,30 @@ def solution(n, path, order):
                 q.append(child)
     for start, end in order:
         directedGraph[start].append(end)
-    global finished
-    finished = [False for _ in range(n)]
-    global discovered
-    discovered = [-1 for _ in range(n)]
-    dfs(0)
-    return answer
+    return dfs(deque([0]))
 
 
-def dfs(node):
-    global answer
-    if not answer:
-        return
-    global nodeOrder
-    discovered[node] = nodeOrder
-    nodeOrder += 1
-    for child in directedGraph[node]:
-        if discovered[child] == -1:
-            dfs(child)
-        elif not finished[child]:
-            answer = False
-            return
-
-    finished[node] = True
+def dfs(stack):
+    discovered = defaultdict(int)
+    finished = defaultdict(bool)
+    nodeOrder = 1
+    while stack:
+        node = stack[-1]
+        discovered[node] = nodeOrder
+        nodeOrder += 1
+        allChildDiscovered = True
+        for child in directedGraph[node]:
+            if discovered[child] == 0:
+                stack.append(child)
+                allChildDiscovered = False
+            elif not finished[child]:
+                return False
+            elif discovered[node] < discovered[child]:
+                continue
+        if allChildDiscovered:
+            finished[node] = True
+            stack.pop()
+    return True
 
 
 if __name__ == "__main__":
